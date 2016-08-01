@@ -1,0 +1,186 @@
+package com.seeyon.apps.sms.util;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.RandomAccessFile;
+
+import com.artofsolving.jodconverter.DocumentConverter;
+import com.artofsolving.jodconverter.openoffice.connection.OpenOfficeConnection;
+import com.artofsolving.jodconverter.openoffice.connection.SocketOpenOfficeConnection;
+import com.artofsolving.jodconverter.openoffice.converter.OpenOfficeDocumentConverter;
+
+public class FileUtil {
+
+	/**
+	 * 获取文件夹下所有文件名
+	 * @param path
+	 * @return
+	 */
+	public static String[] getFileName(String path) {
+		File file = new File(path);
+		String[] fileName = file.list();
+		return fileName;
+	}
+	
+	/**
+	 * 递归删除文件夹
+	 * 
+	 * @param file
+	 */
+	public void deleteFolder(File path) {
+		if (!path.exists())
+			return;
+		if (path.isFile()) {
+			path.delete();
+			return;
+		}
+		File[] files = path.listFiles();
+		for (int i = 0; i < files.length; i++) {
+			deleteFolder(files[i]);
+		}
+		path.delete();
+	}
+
+	/***
+	 * 创建文件夹
+	 * 
+	 * @param folder
+	 *            文件夹名称
+	 */
+	public static void newfolder(String folder) {
+		File file = new File(folder);
+		if (!file.exists()) {
+			file.mkdir();
+		}
+	}
+
+	/**
+	 * 删除文件
+	 * 
+	 * @param fileName
+	 */
+	public void deleteFile(File file) {
+		if (file.exists())
+			file.delete();
+	}
+
+	/**
+	 * 复制文件
+	 * 
+	 * @param oldFile
+	 * @param newFile
+	 */
+	public void copyFile(String oldFile, String newFile) {
+		FileInputStream input  = null;
+		FileOutputStream output  = null;
+		try {
+			 input = new FileInputStream(oldFile); // 旧文件
+			 output = new FileOutputStream(newFile);// 复制到的文件位置
+			int in = input.read();
+			while (in != -1) {
+				output.write(in);
+				in = input.read();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			if (input!=null) {
+				try {
+					input.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if(output!=null){
+				try {
+					output.flush();
+					output.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	/**
+	 * offce系列转PDF
+	 * 
+	 * @param sourceFile
+	 * @param destFile
+	 * @return
+	 */
+	public static int office2PDF(String sourceFile, String destFile) {
+		try {
+			File inputFile = new File(sourceFile);
+			if (!inputFile.exists()) {
+				return -1;// 找不到源文件, 则返回-1
+			}
+
+			// 如果目标路径不存在, 则新建该路径
+			File outputFile = new File(destFile);
+			if (!outputFile.getParentFile().exists()) {
+				outputFile.getParentFile().mkdirs();
+			}
+
+			OpenOfficeConnection connection = new SocketOpenOfficeConnection(
+					"127.0.0.1", 8100);
+			connection.connect();
+			DocumentConverter converter = new OpenOfficeDocumentConverter(
+					connection);
+
+			converter.convert(inputFile, outputFile);
+			connection.disconnect();
+
+			return 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return -1;
+		}
+	}
+
+	public static boolean writeTxtFile(String content, String path)
+			throws Exception {
+		RandomAccessFile mm = null;
+		boolean flag = false;
+		FileOutputStream o = null;
+		try {
+			o = new FileOutputStream(new File(path));
+			o.write(content.getBytes("GBK"));
+			o.close();
+			flag = true;
+		} catch (Exception e) {
+			// TODO: handle exception
+			e.printStackTrace();
+		} finally {
+			if (mm != null) {
+				mm.close();
+			}
+		}
+		return flag;
+	}
+
+	public static void writeHtml(String html) {
+		// String head =
+		// "<html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" /><title></title></head><body>";
+		// String foot = "</body></html>";
+		// html = head + html + foot;
+
+		try {
+			FileOutputStream fos = new FileOutputStream("c:\\"
+					+ System.currentTimeMillis() + "temp.html");
+			OutputStreamWriter osw = new OutputStreamWriter(fos, "utf-8");
+			osw.write(html);
+			fos.flush();
+			fos.close();
+			osw.flush();
+			osw.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
